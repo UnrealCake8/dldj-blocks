@@ -1,81 +1,215 @@
 
-body{
-margin:0;
-font-family:Arial;
+* {
+  box-sizing: border-box;
 }
 
-.topbar{
-background:#111;
-color:white;
-padding:10px 20px;
-display:flex;
-justify-content:space-between;
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+    sans-serif;
+  background: radial-gradient(circle at top left, #eef2ff, #fdf2ff 40%, #f9fafb);
+  color: #0f172a;
 }
 
-.mainLayout{
-display:flex;
-height:calc(100vh - 60px);
+.appShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.editorSection{
-width:50%;
+.topbar {
+  background: linear-gradient(90deg, #4f46e5, #ec4899);
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.3);
 }
 
-.outputSection{
-width:50%;
-display:flex;
-flex-direction:column;
-gap:10px;
-padding:10px;
+.branding h1 {
+  margin: 0;
+  font-size: 1.4rem;
 }
 
-.editorCanvas{
-height:100%;
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
 }
 
-.panel{
-background:white;
-border:1px solid #ddd;
-border-radius:10px;
-overflow:hidden;
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.panelHeader{
-padding:8px 12px;
-background:#f4f4f4;
-font-weight:bold;
+.primaryButton,
+.secondaryButton {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
 }
 
-.previewFrame{
-width:100%;
-height:200px;
-border:none;
+.primaryButton {
+  background: #22c55e;
+  color: white;
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
 }
 
-.codeBlock{
-background:#0f172a;
-color:#86efac;
-margin:10px;
-border-radius:8px;
+.primaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.5);
 }
 
-.codeBlockHeader{
-display:flex;
-justify-content:space-between;
-background:#111827;
-color:white;
-padding:6px 10px;
+.secondaryButton {
+  background: rgba(15, 23, 42, 0.12);
+  color: white;
 }
 
-.copyButton{
-background:#22c55e;
-border:none;
-color:white;
-padding:4px 8px;
-cursor:pointer;
+.secondaryButton:hover {
+  background: rgba(15, 23, 42, 0.2);
 }
 
-pre{
-padding:10px;
-overflow:auto;
+.toggleControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.toggleControl input[type="checkbox"] {
+  accent-color: #22c55e;
+}
+
+.mainLayout {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  height: calc(100vh - 72px);
+}
+
+.editorSection {
+  width: 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionHeader {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #4b5563;
+}
+
+.outputSection {
+  width: 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editorCanvas {
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.25);
+  background: white;
+}
+
+.panel {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+}
+
+.panelHeader {
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #0f172a, #111827);
+  color: #e5e7eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.previewFrame {
+  width: 100%;
+  height: 220px;
+  border: none;
+  background: #f9fafb;
+}
+
+.codeBlock {
+  background: #020617;
+  color: #e5e7eb;
+  margin: 10px;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  overflow: hidden;
+}
+
+.codeBlockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #0f172a, #1f2937);
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.copyButton {
+  background: #22c55e;
+  border: none;
+  color: white;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.copyButton:hover {
+  background: #16a34a;
+}
+
+pre {
+  padding: 12px;
+  margin: 0;
+  overflow: auto;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 960px) {
+  .mainLayout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .editorSection,
+  .outputSection {
+    width: 100%;
+  }
+
+  .previewFrame {
+    height: 260px;
+  }
 }
