@@ -1,67 +1,55 @@
-
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import BlocklyEditor from "./components/BlocklyEditor";
 import PreviewPanel from "./components/PreviewPanel";
 import CodePanel from "./components/CodePanel";
-import { generateCode } from "./generator/codeGenerator";
+import { generateCodeFromWorkspace } from "./generator/codeGenerator";
 
 function App() {
-  const [code, setCode] = useState({ html: "", css: "", js: "" });
   const [workspace, setWorkspace] = useState(null);
+  const [code, setCode] = useState({ html: "", css: "", js: "" });
   const [autoGenerate, setAutoGenerate] = useState(true);
 
-  function generateFromWorkspace(currentWorkspace) {
-    if (!currentWorkspace) return;
+  const title = useMemo(() => "U8Code", []);
 
-    const blocks = currentWorkspace.getTopBlocks(true);
-    const model = [];
-
-    blocks.forEach((block) => {
-      model.push({
-        type: block.type,
-        text: block.getFieldValue("TEXT") || "",
-        label: block.getFieldValue("LABEL") || "",
-        value: block.getFieldValue("VALUE") || "",
-        level: block.getFieldValue("LEVEL") || "",
-        src: block.getFieldValue("SRC") || "",
-        alt: block.getFieldValue("ALT") || "",
-        bg: block.getFieldValue("BG") || "",
-        primary: block.getFieldValue("PRIMARY") || "",
-      });
-    });
-
-    const result = generateCode(model);
-    setCode(result);
+  function regenerate(currentWorkspace) {
+    if (!currentWorkspace) {
+      setCode({ html: "", css: "", js: "" });
+      return;
+    }
+    const nextCode = generateCodeFromWorkspace(currentWorkspace);
+    setCode(nextCode);
   }
 
-  function handleGenerate() {
-    generateFromWorkspace(workspace);
+  function handleWorkspaceReady(nextWorkspace) {
+    setWorkspace(nextWorkspace);
+    regenerate(nextWorkspace);
   }
 
   function handleWorkspaceChange(nextWorkspace) {
-    setWorkspace(nextWorkspace);
     if (autoGenerate) {
-      generateFromWorkspace(nextWorkspace);
+      regenerate(nextWorkspace);
     }
   }
 
-  function handleClearOutput() {
-    setCode({ html: "", css: "", js: "" });
+  function handleGenerate() {
+    regenerate(workspace);
   }
 
-  function handleResetBlocks() {
-    if (workspace) {
-      workspace.clear();
-    }
-    setCode({ html: "", css: "", js: "" });
+  function handleReset() {
+    if (!workspace) return;
+    workspace.clear();
+    localStorage.removeItem("u8code-workspace");
+    regenerate(workspace);
   }
 
   return (
     <div className="appShell">
       <header className="topbar">
         <div className="branding">
-          <h1>Visual Web Builder</h1>
-          <p className="subtitle">Drag blocks, preview instantly, copy code.</p>
+          <h1>{title}</h1>
+          <p className="subtitle">
+            Build visually, generate real HTML, CSS, and JavaScript.
+          </p>
         </div>
 
         <div className="topbarActions">
@@ -69,17 +57,13 @@ function App() {
             <input
               type="checkbox"
               checked={autoGenerate}
-              onChange={(e) => setAutoGenerate(e.target.checked)}
+              onChange={(event) => setAutoGenerate(event.target.checked)}
             />
-            <span>Live preview</span>
+            <span>Auto-generate</span>
           </label>
 
-          <button className="secondaryButton" onClick={handleClearOutput}>
-            Clear output
-          </button>
-
-          <button className="secondaryButton" onClick={handleResetBlocks}>
-            Reset blocks
+          <button className="secondaryButton" onClick={handleReset}>
+            Reset
           </button>
 
           <button className="primaryButton" onClick={handleGenerate}>
@@ -92,7 +76,7 @@ function App() {
         <section className="editorSection">
           <div className="sectionHeader">Blocks editor</div>
           <BlocklyEditor
-            setWorkspace={setWorkspace}
+            onWorkspaceReady={handleWorkspaceReady}
             onWorkspaceChange={handleWorkspaceChange}
           />
         </section>
