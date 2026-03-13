@@ -1,130 +1,73 @@
-
 import { useEffect, useRef } from "react";
 import * as Blockly from "blockly";
+import { defineU8CodeBlocks, toolboxXml } from "../blocks/definitions";
 
-export default function BlocklyEditor({ setWorkspace, onWorkspaceChange }) {
+function loadWorkspace(workspace) {
+  try {
+    const saved = localStorage.getItem("u8code-workspace");
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    Blockly.serialization.workspaces.load(state, workspace);
+  } catch {
+    // ignore invalid local data
+  }
+}
+
+function saveWorkspace(workspace) {
+  try {
+    const state = Blockly.serialization.workspaces.save(workspace);
+    localStorage.setItem("u8code-workspace", JSON.stringify(state));
+  } catch {
+    // ignore save issues
+  }
+}
+
+export default function BlocklyEditor({ onWorkspaceReady, onWorkspaceChange }) {
   const blocklyDiv = useRef(null);
 
   useEffect(() => {
-    Blockly.defineBlocksWithJsonArray([
-      {
-        type: "page_style",
-        message0: "Page style background %1 primary button color %2",
-        args0: [
-          { type: "field_input", name: "BG", text: "#f3f4f6" },
-          { type: "field_input", name: "PRIMARY", text: "#22c55e" },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: 210,
+    defineU8CodeBlocks();
+
+    const workspace = Blockly.inject(blocklyDiv.current, {
+      toolbox: toolboxXml,
+      trashcan: true,
+      grid: {
+        spacing: 24,
+        length: 3,
+        colour: "#e5e7eb",
+        snap: true
       },
-
-      {
-        type: "text_block",
-        message0: "Text %1",
-        args0: [{ type: "field_input", name: "TEXT", text: "Hello world" }],
-        previousStatement: null,
-        nextStatement: null,
-        colour: 200,
+      move: {
+        scrollbars: true,
+        drag: true,
+        wheel: true
       },
-
-      {
-        type: "heading_block",
-        message0: "Heading %1 level %2",
-        args0: [
-          { type: "field_input", name: "TEXT", text: "Section title" },
-          {
-            type: "field_dropdown",
-            name: "LEVEL",
-            options: [
-              ["H1", "h1"],
-              ["H2", "h2"],
-              ["H3", "h3"],
-            ],
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: 260,
-      },
-
-      {
-        type: "button_block",
-        message0: "Button %1",
-        args0: [{ type: "field_input", name: "LABEL", text: "Click me" }],
-        previousStatement: null,
-        nextStatement: null,
-        colour: 50,
-      },
-
-      {
-        type: "image_block",
-        message0: "Image url %1 alt %2",
-        args0: [
-          {
-            type: "field_input",
-            name: "SRC",
-            text: "https://placehold.co/400x200",
-          },
-          {
-            type: "field_input",
-            name: "ALT",
-            text: "Placeholder image",
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: 20,
-      },
-
-      {
-        type: "divider_block",
-        message0: "Divider",
-        previousStatement: null,
-        nextStatement: null,
-        colour: 120,
-      },
-
-      {
-        type: "onclick_event",
-        message0: "On click change text to %1",
-        args0: [{ type: "field_input", name: "VALUE", text: "Clicked!" }],
-        previousStatement: null,
-        nextStatement: null,
-        colour: 330,
-      },
-    ]);
-
-    const workspaceInstance = Blockly.inject(blocklyDiv.current, {
-      toolbox: `
-      <xml>
-        <category name="Page" colour="#0ea5e9">
-          <block type="page_style"></block>
-        </category>
-        <category name="Content" colour="#4f46e5">
-          <block type="heading_block"></block>
-          <block type="text_block"></block>
-          <block type="button_block"></block>
-        </category>
-        <category name="Media" colour="#f97316">
-          <block type="image_block"></block>
-        </category>
-        <category name="Layout" colour="#10b981">
-          <block type="divider_block"></block>
-        </category>
-        <category name="Interaction" colour="#ec4899">
-          <block type="onclick_event"></block>
-        </category>
-      </xml>`,
-    });
-
-    setWorkspace(workspaceInstance);
-    workspaceInstance.addChangeListener(() => {
-      if (onWorkspaceChange) {
-        onWorkspaceChange(workspaceInstance);
+      zoom: {
+        controls: true,
+        wheel: true,
+        startScale: 0.9,
+        maxScale: 1.6,
+        minScale: 0.5,
+        scaleSpeed: 1.1
       }
     });
-  }, [setWorkspace, onWorkspaceChange]);
 
-  return <div ref={blocklyDiv} className="editorCanvas"></div>;
+    loadWorkspace(workspace);
+    onWorkspaceReady?.(workspace);
+
+    const listener = (event) => {
+      if (event.type === Blockly.Events.UI) return;
+      saveWorkspace(workspace);
+      onWorkspaceChange?.(workspace);
+    };
+
+    workspace.addChangeListener(listener);
+
+    return () => {
+      workspace.removeChangeListener(listener);
+      workspace.dispose();
+    };
+  }, [onWorkspaceReady, onWorkspaceChange]);
+
+  return <div ref={blocklyDiv} className="editorCanvas" />;
 }
