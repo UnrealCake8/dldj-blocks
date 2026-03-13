@@ -6,10 +6,11 @@ function loadWorkspace(workspace) {
   try {
     const saved = localStorage.getItem("u8code-workspace");
     if (!saved) return;
+
     const state = JSON.parse(saved);
     Blockly.serialization.workspaces.load(state, workspace);
   } catch {
-    // ignore invalid local data
+    // Ignore broken saved data
   }
 }
 
@@ -18,12 +19,16 @@ function saveWorkspace(workspace) {
     const state = Blockly.serialization.workspaces.save(workspace);
     localStorage.setItem("u8code-workspace", JSON.stringify(state));
   } catch {
-    // ignore save issues
+    // Ignore save errors
   }
 }
 
-export default function BlocklyEditor({ onWorkspaceReady, onWorkspaceChange }) {
+export default function BlocklyEditor({
+  onWorkspaceReady,
+  onWorkspaceChange
+}) {
   const blocklyDiv = useRef(null);
+  const workspaceRef = useRef(null);
 
   useEffect(() => {
     defineU8CodeBlocks();
@@ -52,20 +57,39 @@ export default function BlocklyEditor({ onWorkspaceReady, onWorkspaceChange }) {
       }
     });
 
+    workspaceRef.current = workspace;
+
     loadWorkspace(workspace);
+
     onWorkspaceReady?.(workspace);
 
-    const listener = (event) => {
+    const changeListener = (event) => {
       if (event.type === Blockly.Events.UI) return;
+
       saveWorkspace(workspace);
       onWorkspaceChange?.(workspace);
     };
 
-    workspace.addChangeListener(listener);
+    workspace.addChangeListener(changeListener);
+
+    const resizeWorkspace = () => {
+      if (workspaceRef.current) {
+        Blockly.svgResize(workspaceRef.current);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      resizeWorkspace();
+    }, 100);
+
+    window.addEventListener("resize", resizeWorkspace);
 
     return () => {
-      workspace.removeChangeListener(listener);
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", resizeWorkspace);
+      workspace.removeChangeListener(changeListener);
       workspace.dispose();
+      workspaceRef.current = null;
     };
   }, [onWorkspaceReady, onWorkspaceChange]);
 
