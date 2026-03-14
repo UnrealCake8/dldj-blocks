@@ -10,6 +10,13 @@ function escapeAttribute(value = "") {
   return escapeHtml(value).replaceAll("'", "&#39;");
 }
 
+function sanitizeCustomHtml(html = "") {
+  return String(html)
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/\son\w+="[^"]*"/gi, "")
+    .replace(/\son\w+='[^']*'/gi, "");
+}
+
 function attrs({ id, className, href, src, alt, type, name, placeholder }) {
   const parts = [];
   if (id) parts.push(`id="${escapeAttribute(id)}"`);
@@ -62,9 +69,11 @@ function generateElement(block, level = 1) {
     const children = generateChildren(statementBlock(block, "CHILDREN"), level + 1);
     const open = `<${tag}${attrs({ id, className })}>`;
     const close = `</${tag}>`;
+
     if (children.trim()) {
       return `${"  ".repeat(level)}${open}\n${children}\n${"  ".repeat(level)}${close}`;
     }
+
     return `${"  ".repeat(level)}${open}${close}`;
   }
 
@@ -112,6 +121,7 @@ function generateElement(block, level = 1) {
     const placeholder = block.getFieldValue("PLACEHOLDER");
     const id = block.getFieldValue("ID");
     const className = block.getFieldValue("CLASS");
+
     return `${"  ".repeat(level)}<input${attrs({
       id,
       className,
@@ -128,9 +138,11 @@ function generateElement(block, level = 1) {
     const children = generateChildren(statementBlock(block, "ITEMS"), level + 1);
     const open = `<${tag}${attrs({ id, className })}>`;
     const close = `</${tag}>`;
+
     if (children.trim()) {
       return `${"  ".repeat(level)}${open}\n${children}\n${"  ".repeat(level)}${close}`;
     }
+
     return `${"  ".repeat(level)}${open}${close}`;
   }
 
@@ -139,6 +151,12 @@ function generateElement(block, level = 1) {
     const id = block.getFieldValue("ID");
     const className = block.getFieldValue("CLASS");
     return `${"  ".repeat(level)}<li${attrs({ id, className })}>${text}</li>`;
+  }
+
+  if (type === "custom_html_block") {
+    const rawHtml = block.getFieldValue("HTML") || "";
+    const safeHtml = sanitizeCustomHtml(rawHtml);
+    return `${"  ".repeat(level)}${safeHtml}`;
   }
 
   return "";
@@ -242,6 +260,7 @@ ${indent(actions.join("\n"), 3)}
 export function generateCodeFromWorkspace(workspace) {
   const topBlocks = workspace.getTopBlocks(true);
   const pageBlock = topBlocks.find((block) => block.type === "page_block");
+  const pageTitle = pageBlock?.getFieldValue("TITLE")?.trim() || "U8Code Project";
 
   const bodyHtml = pageBlock
     ? generateChildren(statementBlock(pageBlock, "BODY"), 0)
@@ -256,7 +275,8 @@ export function generateCodeFromWorkspace(workspace) {
             "image_block",
             "input_block",
             "list_block",
-            "list_item_block"
+            "list_item_block",
+            "custom_html_block"
           ].includes(block.type)
         )
         .map((block) => generateElement(block, 0))
@@ -270,7 +290,7 @@ export function generateCodeFromWorkspace(workspace) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>U8Code Project</title>
+  <title>${escapeHtml(pageTitle)}</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -279,5 +299,10 @@ ${bodyHtml || "  <!-- Add blocks to your page -->"}
 </body>
 </html>`;
 
-  return { html: bodyHtml || "", css, js, fullHtml };
+  return {
+    html: bodyHtml || "",
+    css,
+    js,
+    fullHtml
+  };
 }
