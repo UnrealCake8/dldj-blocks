@@ -1,0 +1,10 @@
+1. In Vercel, add these Environment Variables:
+   VITE_SUPABASE_URL
+   VITE_SUPABASE_ANON_KEY
+
+2. In Supabase, create a projects table.
+
+3. Because you use GitHub web, just commit these files to GitHub.
+   Vercel will redeploy automatically.
+
+4. For local development, copy .env.example to .env.local

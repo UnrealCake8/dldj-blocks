@@ -1,46 +1,56 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import BlocklyEditor from "./components/BlocklyEditor";
 import PreviewPanel from "./components/PreviewPanel";
 import CodePanel from "./components/CodePanel";
 import { generateCodeFromWorkspace } from "./generator/codeGenerator";
+import LoginPage from "./LoginPage";
+import SignupPage from "./SignupPage";
+import DashboardPage from "./DashboardPage";
 
-function App() {
+function BuilderPage() {
   const [workspace, setWorkspace] = useState(null);
   const [code, setCode] = useState({ html: "", css: "", js: "" });
   const [autoGenerate, setAutoGenerate] = useState(true);
 
   const title = useMemo(() => "U8Code", []);
 
-  function regenerate(currentWorkspace) {
+  const regenerate = useCallback((currentWorkspace) => {
     if (!currentWorkspace) {
       setCode({ html: "", css: "", js: "" });
       return;
     }
     const nextCode = generateCodeFromWorkspace(currentWorkspace);
     setCode(nextCode);
-  }
+  }, []);
 
-  function handleWorkspaceReady(nextWorkspace) {
-    setWorkspace(nextWorkspace);
-    regenerate(nextWorkspace);
-  }
-
-  function handleWorkspaceChange(nextWorkspace) {
-    if (autoGenerate) {
+  const handleWorkspaceReady = useCallback(
+    (nextWorkspace) => {
+      setWorkspace(nextWorkspace);
       regenerate(nextWorkspace);
-    }
-  }
+    },
+    [regenerate]
+  );
 
-  function handleGenerate() {
+  const handleWorkspaceChange = useCallback(
+    (nextWorkspace) => {
+      if (autoGenerate) {
+        regenerate(nextWorkspace);
+      }
+    },
+    [autoGenerate, regenerate]
+  );
+
+  const handleGenerate = useCallback(() => {
     regenerate(workspace);
-  }
+  }, [workspace, regenerate]);
 
-  function handleReset() {
+  const handleReset = useCallback(() => {
     if (!workspace) return;
     workspace.clear();
     localStorage.removeItem("u8code-workspace");
     regenerate(workspace);
-  }
+  }, [workspace, regenerate]);
 
   return (
     <div className="appShell">
@@ -53,6 +63,16 @@ function App() {
         </div>
 
         <div className="topbarActions">
+          <Link className="secondaryButton navLinkButton" to="/dashboard">
+            Dashboard
+          </Link>
+          <Link className="secondaryButton navLinkButton" to="/login">
+            Login
+          </Link>
+          <Link className="secondaryButton navLinkButton" to="/signup">
+            Sign up
+          </Link>
+
           <label className="toggleControl">
             <input
               type="checkbox"
@@ -90,4 +110,15 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<BuilderPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}

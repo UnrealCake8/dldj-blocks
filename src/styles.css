@@ -213,3 +213,100 @@ button {
     grid-template-rows: 360px auto;
   }
 }
+
+
+.navLinkButton {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.authPage,
+.dashboardPage {
+  min-height: 100vh;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.authCard {
+  width: min(420px, 100%);
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  padding: 28px;
+}
+
+.authCard h1 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.authSubtext,
+.dashboardSubtext,
+.dashboardUser,
+.projectMeta,
+.authFooterText {
+  color: #4b5563;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.authForm input {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.authFooterText {
+  margin-top: 16px;
+}
+
+.dashboardPage {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.dashboardTop {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.dashboardActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.darkButton {
+  background: #111827;
+  color: white;
+}
+
+.projectGrid {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.projectCard {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  padding: 18px;
+}
