@@ -9,6 +9,7 @@ import SignupPage from "./SignupPage";
 import DashboardPage from "./DashboardPage";
 import PublishedPage from "./PublishedPage";
 import { supabase } from "./supabaseClient";
+import { exportProjectZip } from "./exportZip";
 
 function slugify(value) {
   return value
@@ -35,6 +36,15 @@ function BuilderPage({ user, onLogout }) {
   const [workspaceKey, setWorkspaceKey] = useState(null);
 
   const title = useMemo(() => "U8Code", []);
+
+  function handleDownloadZip() {
+    if (!code.html && !code.fullHtml) {
+      alert("Generate your site first.");
+      return;
+    }
+    exportProjectZip(code, projectName);
+  }
+
 
   const regenerate = useCallback((currentWorkspace) => {
     if (!currentWorkspace) {
@@ -226,7 +236,7 @@ function BuilderPage({ user, onLogout }) {
               <button className="secondaryButton" onClick={() => saveProject()}>
                 Save
               </button>
-              <button className="secondaryButton" onClick={() => saveProject({ publish: true })}>
+              <button className="secondaryButton" onClick={handleDownloadZip}>
                 Publish
               </button>
               <button className="secondaryButton" onClick={onLogout}>
