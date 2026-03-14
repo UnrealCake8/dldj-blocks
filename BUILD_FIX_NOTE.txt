@@ -1,7 +1,0 @@
-This build-fix zip adds the missing file:
-
-src/exportZip.js
-
-It also ensures package.json includes:
-- jszip
-- file-saver

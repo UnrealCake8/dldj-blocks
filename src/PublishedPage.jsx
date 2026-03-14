@@ -59,7 +59,7 @@ export default function PublishedPage() {
     <main className="publishedPage">
       <div className="publishedBar">
         <strong>{project.name}</strong>
-        <span>Published with U8Code</span>
+        <span>Created by an awesome person!</span>
       </div>
 
       <iframe
