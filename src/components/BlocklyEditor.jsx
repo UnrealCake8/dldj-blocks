@@ -24,6 +24,7 @@ export default function BlocklyEditor({
   const lastLoadedKeyRef = useRef(null);
 
   useEffect(() => {
+    window.Blockly = Blockly;
     readyRef.current = onWorkspaceReady;
     changeRef.current = onWorkspaceChange;
   }, [onWorkspaceReady, onWorkspaceChange]);

@@ -113,8 +113,7 @@ export default function DashboardPage() {
 
   async function deleteProject(projectId) {
     if (!supabase) return;
-    const confirmed = window.confirm("Delete this project?");
-    if (!confirmed) return;
+    if (!window.confirm("Delete this project?")) return;
 
     const { error } = await supabase
       .from("projects")
@@ -135,11 +134,8 @@ export default function DashboardPage() {
     navigate("/");
   }
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
   if (status === "loading") {
+    loadProjects();
     return <main className="dashboardPage"><p>Loading dashboard…</p></main>;
   }
 

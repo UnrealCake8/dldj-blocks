@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Link, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
+import { BrowserRouter, Link, Route, Routes, useSearchParams } from "react-router-dom";
 import BlocklyEditor from "./components/BlocklyEditor";
 import PreviewPanel from "./components/PreviewPanel";
 import CodePanel from "./components/CodePanel";
@@ -26,7 +26,7 @@ function makeSlug(name) {
 
 function BuilderPage({ user, onLogout }) {
   const [workspace, setWorkspace] = useState(null);
-  const [code, setCode] = useState({ html: "", css: "", js: "" });
+  const [code, setCode] = useState({ html: "", css: "", js: "", fullHtml: "" });
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [searchParams] = useSearchParams();
   const [currentProjectId, setCurrentProjectId] = useState(null);
@@ -38,7 +38,7 @@ function BuilderPage({ user, onLogout }) {
 
   const regenerate = useCallback((currentWorkspace) => {
     if (!currentWorkspace) {
-      setCode({ html: "", css: "", js: "" });
+      setCode({ html: "", css: "", js: "", fullHtml: "" });
       return;
     }
     const nextCode = generateCodeFromWorkspace(currentWorkspace);
@@ -72,6 +72,8 @@ function BuilderPage({ user, onLogout }) {
     localStorage.removeItem("u8code-workspace");
     setCurrentProjectId(null);
     setProjectName("Untitled Project");
+    setRemoteWorkspaceState(null);
+    setWorkspaceKey(null);
     regenerate(workspace);
   }, [workspace, regenerate]);
 
@@ -93,6 +95,12 @@ function BuilderPage({ user, onLogout }) {
       setProjectName(data.name || "Untitled Project");
       setRemoteWorkspaceState(data.workspace_json || {});
       setWorkspaceKey(`${data.id}:${data.updated_at || ""}`);
+      setCode({
+        html: data.html_code || "",
+        css: data.css_code || "",
+        js: data.js_code || "",
+        fullHtml: ""
+      });
     }
 
     loadProject();
@@ -111,6 +119,15 @@ function BuilderPage({ user, onLogout }) {
       ? window.Blockly.serialization.workspaces.save(workspace)
       : {};
 
+    const payload = {
+      name,
+      workspace_json: workspaceState,
+      html_code: code.html,
+      css_code: code.css,
+      js_code: code.js,
+      updated_at: new Date().toISOString()
+    };
+
     if (!currentProjectId) {
       const { count } = await supabase
         .from("projects")
@@ -124,11 +141,7 @@ function BuilderPage({ user, onLogout }) {
 
       const insertData = {
         user_id: user.id,
-        name,
-        workspace_json: workspaceState,
-        html_code: code.html,
-        css_code: code.css,
-        js_code: code.js,
+        ...payload,
         is_published: publish,
         published_slug: publish ? makeSlug(name) : null
       };
@@ -153,23 +166,13 @@ function BuilderPage({ user, onLogout }) {
       return;
     }
 
-    const updates = {
-      name,
-      workspace_json: workspaceState,
-      html_code: code.html,
-      css_code: code.css,
-      js_code: code.js,
-      updated_at: new Date().toISOString()
-    };
-
     if (publish) {
-      updates.is_published = true;
-      updates.published_slug = searchParams.get("slug") || makeSlug(name);
+      payload.is_published = true;
     }
 
     const { data, error } = await supabase
       .from("projects")
-      .update(updates)
+      .update(payload)
       .eq("id", currentProjectId)
       .eq("user_id", user.id)
       .select()
@@ -181,10 +184,27 @@ function BuilderPage({ user, onLogout }) {
     }
 
     setProjectName(data.name);
-    alert(publish ? "Project published." : "Project saved.");
-    if (publish && data.published_slug) {
+    if (publish && !data.published_slug) {
+      const newSlug = makeSlug(name);
+      const { data: publishedData, error: publishError } = await supabase
+        .from("projects")
+        .update({ published_slug: newSlug })
+        .eq("id", currentProjectId)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+
+      if (publishError) {
+        alert(publishError.message);
+        return;
+      }
+
+      window.open(`/p/${publishedData.published_slug}`, "_blank");
+    } else if (publish && data.published_slug) {
       window.open(`/p/${data.published_slug}`, "_blank");
     }
+
+    alert(publish ? "Project published." : "Project saved.");
   }
 
   return (

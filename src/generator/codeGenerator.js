@@ -243,7 +243,7 @@ export function generateCodeFromWorkspace(workspace) {
   const topBlocks = workspace.getTopBlocks(true);
   const pageBlock = topBlocks.find((block) => block.type === "page_block");
 
-  const pageBody = pageBlock
+  const bodyHtml = pageBlock
     ? generateChildren(statementBlock(pageBlock, "BODY"), 0)
     : topBlocks
         .filter((block) =>
@@ -265,5 +265,19 @@ export function generateCodeFromWorkspace(workspace) {
   const css = generateCss(workspace);
   const js = generateJs(workspace);
 
-  return { html: pageBody || "<!-- Add blocks to your page -->", css, js };
+  const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>U8Code Project</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+${bodyHtml || "  <!-- Add blocks to your page -->"}
+  <script src="script.js"></script>
+</body>
+</html>`;
+
+  return { html: bodyHtml || "", css, js, fullHtml };
 }

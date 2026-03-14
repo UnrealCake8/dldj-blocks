@@ -12,7 +12,7 @@ function buildDocument(project) {
   <style>${project.css_code || ""}</style>
 </head>
 <body>
-${project.html_code || ""}
+${project.html_code || "<p>Nothing published yet.</p>"}
 <script>${(project.js_code || "").replace(/<\/script>/gi, "<\\/script>")}<\/script>
 </body>
 </html>`;
@@ -51,17 +51,9 @@ export default function PublishedPage() {
 
   const srcDoc = useMemo(() => (project ? buildDocument(project) : ""), [project]);
 
-  if (status === "loading") {
-    return <main className="publishedState">Loading published site…</main>;
-  }
-
-  if (status === "missing-env") {
-    return <main className="publishedState">Supabase environment variables are missing.</main>;
-  }
-
-  if (status === "not-found") {
-    return <main className="publishedState">This published site was not found.</main>;
-  }
+  if (status === "loading") return <main className="publishedState">Loading published site…</main>;
+  if (status === "missing-env") return <main className="publishedState">Supabase environment variables are missing.</main>;
+  if (status === "not-found") return <main className="publishedState">This published site was not found.</main>;
 
   return (
     <main className="publishedPage">
@@ -71,9 +63,10 @@ export default function PublishedPage() {
       </div>
 
       <iframe
+        key={project.published_slug}
         title={project.name}
         className="publishedFrame"
-        sandbox="allow-scripts"
+        sandbox="allow-scripts allow-same-origin"
         srcDoc={srcDoc}
       />
     </main>
