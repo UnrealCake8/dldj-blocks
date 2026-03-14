@@ -2,17 +2,6 @@ import { useEffect, useRef } from "react";
 import * as Blockly from "blockly";
 import { defineU8CodeBlocks, toolboxXml } from "../blocks/definitions";
 
-function loadWorkspace(workspace) {
-  try {
-    const saved = localStorage.getItem("u8code-workspace");
-    if (!saved) return;
-    const state = JSON.parse(saved);
-    Blockly.serialization.workspaces.load(state, workspace);
-  } catch {
-    // ignore broken saved data
-  }
-}
-
 function saveWorkspace(workspace) {
   try {
     const state = Blockly.serialization.workspaces.save(workspace);
@@ -22,11 +11,17 @@ function saveWorkspace(workspace) {
   }
 }
 
-export default function BlocklyEditor({ onWorkspaceReady, onWorkspaceChange }) {
+export default function BlocklyEditor({
+  onWorkspaceReady,
+  onWorkspaceChange,
+  externalWorkspaceState,
+  workspaceKey
+}) {
   const blocklyDiv = useRef(null);
   const workspaceRef = useRef(null);
   const readyRef = useRef(onWorkspaceReady);
   const changeRef = useRef(onWorkspaceChange);
+  const lastLoadedKeyRef = useRef(null);
 
   useEffect(() => {
     readyRef.current = onWorkspaceReady;
@@ -62,7 +57,16 @@ export default function BlocklyEditor({ onWorkspaceReady, onWorkspaceChange }) {
 
     workspaceRef.current = workspace;
 
-    loadWorkspace(workspace);
+    try {
+      const saved = localStorage.getItem("u8code-workspace");
+      if (saved) {
+        const state = JSON.parse(saved);
+        Blockly.serialization.workspaces.load(state, workspace);
+      }
+    } catch {
+      // ignore broken local data
+    }
+
     readyRef.current?.(workspace);
 
     const listener = (event) => {
@@ -78,7 +82,6 @@ export default function BlocklyEditor({ onWorkspaceReady, onWorkspaceChange }) {
     };
 
     workspace.addChangeListener(listener);
-
     const timeoutId = setTimeout(resizeWorkspace, 100);
     window.addEventListener("resize", resizeWorkspace);
 
@@ -90,6 +93,19 @@ export default function BlocklyEditor({ onWorkspaceReady, onWorkspaceChange }) {
       workspaceRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!workspaceRef.current) return;
+    if (!externalWorkspaceState) return;
+    if (!workspaceKey) return;
+    if (lastLoadedKeyRef.current === workspaceKey) return;
+
+    workspaceRef.current.clear();
+    Blockly.serialization.workspaces.load(externalWorkspaceState, workspaceRef.current);
+    lastLoadedKeyRef.current = workspaceKey;
+    readyRef.current?.(workspaceRef.current);
+    changeRef.current?.(workspaceRef.current);
+  }, [externalWorkspaceState, workspaceKey]);
 
   return <div ref={blocklyDiv} className="editorCanvas" />;
 }

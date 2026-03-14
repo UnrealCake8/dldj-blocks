@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 
 export default function LoginPage() {
@@ -9,6 +9,11 @@ export default function LoginPage() {
 
   async function login(event) {
     event.preventDefault();
+
+    if (!supabase) {
+      alert("Supabase environment variables are missing.");
+      return;
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -27,9 +32,9 @@ export default function LoginPage() {
     <main className="authPage">
       <section className="authCard">
         <h1>Login</h1>
-        <p className="authSubtext">Sign in to manage your U8Code projects.</p>
+        <p className="authSubtext">Sign in to manage and publish your projects.</p>
 
-        <form onSubmit={login} className="authForm">
+        <form className="authForm" onSubmit={login}>
           <label>Email</label>
           <input
             type="email"

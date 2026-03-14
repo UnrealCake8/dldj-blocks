@@ -191,7 +191,7 @@ function generateAction(actionBlock) {
   const type = actionBlock.type;
 
   if (type === "set_text_action") {
-    const targetId = escapeAttribute(actionBlock.getFieldValue("TARGET_ID") || "");
+    const targetId = actionBlock.getFieldValue("TARGET_ID") || "";
     const text = JSON.stringify(actionBlock.getFieldValue("TEXT") || "");
     return `const el = document.getElementById(${JSON.stringify(targetId)});
 if (el) {
@@ -243,9 +243,8 @@ export function generateCodeFromWorkspace(workspace) {
   const topBlocks = workspace.getTopBlocks(true);
   const pageBlock = topBlocks.find((block) => block.type === "page_block");
 
-  const title = pageBlock?.getFieldValue("TITLE")?.trim() || "U8Code Project";
   const pageBody = pageBlock
-    ? generateChildren(statementBlock(pageBlock, "BODY"), 1)
+    ? generateChildren(statementBlock(pageBlock, "BODY"), 0)
     : topBlocks
         .filter((block) =>
           [
@@ -260,25 +259,11 @@ export function generateCodeFromWorkspace(workspace) {
             "list_item_block"
           ].includes(block.type)
         )
-        .map((block) => generateElement(block, 1))
+        .map((block) => generateElement(block, 0))
         .join("\n");
-
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeHtml(title)}</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-${pageBody || "  <!-- Add blocks to your page -->"}
-  <script src="script.js"></script>
-</body>
-</html>`;
 
   const css = generateCss(workspace);
   const js = generateJs(workspace);
 
-  return { html, css, js };
+  return { html: pageBody || "<!-- Add blocks to your page -->", css, js };
 }

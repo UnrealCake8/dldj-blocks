@@ -215,16 +215,23 @@ button {
 }
 
 
-.navLinkButton {
+.navLinkButton,
+.smallLinkButton {
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
 }
 
 .authPage,
-.dashboardPage {
+.dashboardPage,
+.publishedState {
   min-height: 100vh;
   padding: 32px;
+}
+
+.authPage,
+.publishedState {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -239,15 +246,15 @@ button {
 }
 
 .authCard h1 {
-  margin-top: 0;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
 }
 
 .authSubtext,
 .dashboardSubtext,
 .dashboardUser,
 .projectMeta,
-.authFooterText {
+.authFooterText,
+.publishedBar span {
   color: #4b5563;
 }
 
@@ -269,11 +276,6 @@ button {
   margin-top: 16px;
 }
 
-.dashboardPage {
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-
 .dashboardTop {
   width: 100%;
   max-width: 1120px;
@@ -284,7 +286,8 @@ button {
   align-items: flex-start;
 }
 
-.dashboardActions {
+.dashboardActions,
+.projectCardActions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -309,4 +312,42 @@ button {
   border-radius: 18px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
   padding: 18px;
+}
+
+.publishedLink {
+  display: inline-block;
+  margin-top: 14px;
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.publishedPage {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #e5e7eb;
+}
+
+.publishedBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  background: white;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.publishedFrame {
+  width: 100%;
+  height: calc(100vh - 58px);
+  border: 0;
+  background: white;
+}
+
+@media (max-width: 1024px) {
+  .dashboardTop {
+    flex-direction: column;
+  }
 }
