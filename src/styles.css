@@ -1,31 +1,353 @@
-.publishMenuWrapper {
-  position: relative;
+
+* {
+  box-sizing: border-box;
 }
 
-.publishDropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 190px;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+    sans-serif;
+  background: radial-gradient(circle at top left, #eef2ff, #fdf2ff 40%, #f9fafb);
+  color: #0f172a;
+}
+
+.appShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: linear-gradient(90deg, #4f46e5, #ec4899);
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.3);
+}
+
+.branding h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.primaryButton,
+.secondaryButton {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
+}
+
+.primaryButton {
+  background: #22c55e;
+  color: white;
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.5);
+}
+
+.secondaryButton {
+  background: rgba(15, 23, 42, 0.12);
+  color: white;
+}
+
+.secondaryButton:hover {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+.toggleControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.toggleControl input[type="checkbox"] {
+  accent-color: #22c55e;
+}
+
+.mainLayout {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  height: calc(100vh - 72px);
+}
+
+.editorSection {
+  width: 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionHeader {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #4b5563;
+}
+
+.outputSection {
+  width: 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editorCanvas {
+  flex: 1;
+  border-radius: 16px;
   overflow: hidden;
-  z-index: 1000;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.25);
+  background: white;
 }
 
-.publishDropdown button {
+.panel {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+}
+
+.panelHeader {
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #0f172a, #111827);
+  color: #e5e7eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.previewFrame {
   width: 100%;
+  height: 220px;
+  border: none;
+  background: #f9fafb;
+}
+
+.codeBlock {
+  background: #020617;
+  color: #e5e7eb;
+  margin: 10px;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  overflow: hidden;
+}
+
+.codeBlockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #0f172a, #1f2937);
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.copyButton {
+  background: #22c55e;
+  border: none;
+  color: white;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.copyButton:hover {
+  background: #16a34a;
+}
+
+pre {
+  padding: 12px;
+  margin: 0;
+  overflow: auto;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 960px) {
+  .mainLayout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .editorSection,
+  .outputSection {
+    width: 100%;
+  }
+
+  .previewFrame {
+    height: 260px;
+  }
+}
+
+
+.navLinkButton,
+.smallLinkButton {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.authPage,
+.dashboardPage,
+.publishedState {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.authPage,
+.publishedState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.authCard {
+  width: min(420px, 100%);
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  padding: 28px;
+}
+
+.authCard h1 {
+  margin: 0 0 8px;
+}
+
+.authSubtext,
+.dashboardSubtext,
+.dashboardUser,
+.projectMeta,
+.authFooterText,
+.publishedBar span {
+  color: #4b5563;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.authForm input {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.authFooterText {
+  margin-top: 16px;
+}
+
+.dashboardTop {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.dashboardActions,
+.projectCardActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.darkButton {
+  background: #111827;
+  color: white;
+}
+
+.projectGrid {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.projectCard {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  padding: 18px;
+}
+
+.publishedLink {
+  display: inline-block;
+  margin-top: 14px;
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.publishedPage {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #e5e7eb;
+}
+
+.publishedBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  background: white;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.publishedFrame {
+  width: 100%;
+  height: calc(100vh - 58px);
   border: 0;
   background: white;
-  color: #111827;
-  padding: 12px 14px;
-  text-align: left;
-  font: inherit;
-  cursor: pointer;
 }
 
-.publishDropdown button:hover {
-  background: #f3f4f6;
+@media (max-width: 1024px) {
+  .dashboardTop {
+    flex-direction: column;
+  }
 }
