@@ -219,9 +219,9 @@ function BuilderPage({ user, onLogout }) {
     <div className="appShell">
       <header className="topbar">
         <div className="branding">
-          <h1>{title}</h1>
+          <h1>BlockCode</h1>
           <p className="subtitle">
-            Build visually, generate real HTML, CSS, and JavaScript.
+            Build anything with no-code,open-source BlockCode, a tool that uses blocks to make HTML, JS and CSS Code.
           </p>
         </div>
 
