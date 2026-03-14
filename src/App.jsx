@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Link, Route, Routes, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BrowserRouter, Link, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 import BlocklyEditor from "./components/BlocklyEditor";
 import PreviewPanel from "./components/PreviewPanel";
 import CodePanel from "./components/CodePanel";
 import { generateCodeFromWorkspace } from "./generator/codeGenerator";
+import { exportProjectZip } from "./exportZip";
 import LoginPage from "./LoginPage";
 import SignupPage from "./SignupPage";
 import DashboardPage from "./DashboardPage";
 import PublishedPage from "./PublishedPage";
 import { supabase } from "./supabaseClient";
-import { exportProjectZip } from "./exportZip";
 
 function slugify(value) {
   return value
@@ -34,17 +34,10 @@ function BuilderPage({ user, onLogout }) {
   const [projectName, setProjectName] = useState("Untitled Project");
   const [remoteWorkspaceState, setRemoteWorkspaceState] = useState(null);
   const [workspaceKey, setWorkspaceKey] = useState(null);
+  const [publishMenuOpen, setPublishMenuOpen] = useState(false);
+  const publishMenuRef = useRef(null);
 
   const title = useMemo(() => "U8Code", []);
-
-  function handleDownloadZip() {
-    if (!code.html && !code.fullHtml) {
-      alert("Generate your site first.");
-      return;
-    }
-    exportProjectZip(code, projectName);
-  }
-
 
   const regenerate = useCallback((currentWorkspace) => {
     if (!currentWorkspace) {
@@ -82,8 +75,6 @@ function BuilderPage({ user, onLogout }) {
     localStorage.removeItem("u8code-workspace");
     setCurrentProjectId(null);
     setProjectName("Untitled Project");
-    setRemoteWorkspaceState(null);
-    setWorkspaceKey(null);
     regenerate(workspace);
   }, [workspace, regenerate]);
 
@@ -105,16 +96,26 @@ function BuilderPage({ user, onLogout }) {
       setProjectName(data.name || "Untitled Project");
       setRemoteWorkspaceState(data.workspace_json || {});
       setWorkspaceKey(`${data.id}:${data.updated_at || ""}`);
-      setCode({
-        html: data.html_code || "",
-        css: data.css_code || "",
-        js: data.js_code || "",
-        fullHtml: ""
-      });
     }
 
     loadProject();
   }, [searchParams, user]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        publishMenuRef.current &&
+        !publishMenuRef.current.contains(event.target)
+      ) {
+        setPublishMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   async function saveProject({ publish = false } = {}) {
     if (!user || !supabase || !workspace) {
@@ -129,15 +130,6 @@ function BuilderPage({ user, onLogout }) {
       ? window.Blockly.serialization.workspaces.save(workspace)
       : {};
 
-    const payload = {
-      name,
-      workspace_json: workspaceState,
-      html_code: code.html,
-      css_code: code.css,
-      js_code: code.js,
-      updated_at: new Date().toISOString()
-    };
-
     if (!currentProjectId) {
       const { count } = await supabase
         .from("projects")
@@ -151,7 +143,11 @@ function BuilderPage({ user, onLogout }) {
 
       const insertData = {
         user_id: user.id,
-        ...payload,
+        name,
+        workspace_json: workspaceState,
+        html_code: code.html,
+        css_code: code.css,
+        js_code: code.js,
         is_published: publish,
         published_slug: publish ? makeSlug(name) : null
       };
@@ -176,13 +172,23 @@ function BuilderPage({ user, onLogout }) {
       return;
     }
 
+    const updates = {
+      name,
+      workspace_json: workspaceState,
+      html_code: code.html,
+      css_code: code.css,
+      js_code: code.js,
+      updated_at: new Date().toISOString()
+    };
+
     if (publish) {
-      payload.is_published = true;
+      updates.is_published = true;
+      updates.published_slug = searchParams.get("slug") || makeSlug(name);
     }
 
     const { data, error } = await supabase
       .from("projects")
-      .update(payload)
+      .update(updates)
       .eq("id", currentProjectId)
       .eq("user_id", user.id)
       .select()
@@ -194,27 +200,19 @@ function BuilderPage({ user, onLogout }) {
     }
 
     setProjectName(data.name);
-    if (publish && !data.published_slug) {
-      const newSlug = makeSlug(name);
-      const { data: publishedData, error: publishError } = await supabase
-        .from("projects")
-        .update({ published_slug: newSlug })
-        .eq("id", currentProjectId)
-        .eq("user_id", user.id)
-        .select()
-        .single();
-
-      if (publishError) {
-        alert(publishError.message);
-        return;
-      }
-
-      window.open(`/p/${publishedData.published_slug}`, "_blank");
-    } else if (publish && data.published_slug) {
+    alert(publish ? "Project published." : "Project saved.");
+    if (publish && data.published_slug) {
       window.open(`/p/${data.published_slug}`, "_blank");
     }
+  }
 
-    alert(publish ? "Project published." : "Project saved.");
+  function handleDownloadZip() {
+    if (!code.html && !code.fullHtml) {
+      alert("Generate your site first.");
+      return;
+    }
+
+    exportProjectZip(code, projectName || "u8code-site");
   }
 
   return (
@@ -233,12 +231,42 @@ function BuilderPage({ user, onLogout }) {
               <Link className="secondaryButton navLinkButton" to="/dashboard">
                 Dashboard
               </Link>
+
               <button className="secondaryButton" onClick={() => saveProject()}>
                 Save
               </button>
-              <button className="secondaryButton" onClick={handleDownloadZip}>
-                Publish
-              </button>
+
+              <div className="publishMenuWrapper" ref={publishMenuRef}>
+                <button
+                  className="secondaryButton"
+                  onClick={() => setPublishMenuOpen((open) => !open)}
+                >
+                  Publish ▾
+                </button>
+
+                {publishMenuOpen ? (
+                  <div className="publishDropdown">
+                    <button
+                      onClick={async () => {
+                        await saveProject({ publish: true });
+                        setPublishMenuOpen(false);
+                      }}
+                    >
+                      Publish to slug
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleDownloadZip();
+                        setPublishMenuOpen(false);
+                      }}
+                    >
+                      Download ZIP
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+
               <button className="secondaryButton" onClick={onLogout}>
                 Logout
               </button>
